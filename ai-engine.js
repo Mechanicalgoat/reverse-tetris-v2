@@ -11,25 +11,25 @@ class AIEngine {
     constructor() {
         this.difficultyParams = {
             easy: {
-                heightWeight: -0.3,
-                linesWeight: 0.5,
-                holesWeight: -0.5,
-                bumpinessWeight: -0.2,
-                randomness: 0.3
+                heightWeight: 0.8,      // 高さを高くしたい（積み上げたい）
+                linesWeight: -1.0,      // 完成ラインは避けたい
+                holesWeight: 0.3,       // 穴は気にしない（作ってもよい）
+                bumpinessWeight: 0.2,   // 凸凹も気にしない
+                randomness: 0.4         // ランダム性高め（下手に見せる）
             },
             normal: {
-                heightWeight: -0.5,
-                linesWeight: 1.0,
-                holesWeight: -1.0,
-                bumpinessWeight: -0.3,
-                randomness: 0.1
+                heightWeight: 1.2,      // より高く積み上げたい
+                linesWeight: -1.5,      // 完成ラインをより避ける
+                holesWeight: 0.1,       // 穴は少し気にする
+                bumpinessWeight: 0.1,   // 凸凹は少し気にする
+                randomness: 0.2         // 適度なランダム性
             },
             hard: {
-                heightWeight: -0.8,
-                linesWeight: 1.5,
-                holesWeight: -2.0,
-                bumpinessWeight: -0.5,
-                randomness: 0.0
+                heightWeight: 1.5,      // 最も高く積み上げたい
+                linesWeight: -2.0,      // 完成ラインを最も避ける
+                holesWeight: -0.1,      // 穴は少し避ける（効率的に）
+                bumpinessWeight: 0.0,   // 凸凹は気にしない
+                randomness: 0.1         // ランダム性低め（上手く見せる）
             }
         };
     }
@@ -41,6 +41,9 @@ class AIEngine {
         const params = this.difficultyParams[difficulty] || this.difficultyParams.normal;
         let bestScore = -Infinity;
         let bestPlacement = null;
+        let placements = [];
+        
+        console.log(`AI配置計算開始 - 難易度: ${difficulty}`, params);
         
         // 全ての回転状態を試す
         for (let rotation = 0; rotation < 4; rotation++) {
@@ -56,7 +59,14 @@ class AIEngine {
                     this.placePieceOnGrid(testGrid, rotatedShape, x, y);
                     
                     const score = this.evaluateGrid(testGrid, params);
-                    const finalScore = score + (Math.random() - 0.5) * params.randomness;
+                    const finalScore = score + (Math.random() - 0.5) * params.randomness * 2;
+                    
+                    placements.push({
+                        x, y, rotation,
+                        score: finalScore,
+                        rawScore: score,
+                        shape: rotatedShape
+                    });
                     
                     if (finalScore > bestScore) {
                         bestScore = finalScore;
@@ -69,6 +79,14 @@ class AIEngine {
                     }
                 }
             }
+        }
+        
+        console.log(`AI評価完了 - 候補数: ${placements.length}, 最高スコア: ${bestScore}`);
+        
+        if (bestPlacement) {
+            console.log(`選択された配置: (${bestPlacement.x}, ${bestPlacement.y}), 回転: ${bestPlacement.rotation}`);
+        } else {
+            console.log('配置可能な場所が見つかりませんでした');
         }
         
         return bestPlacement;

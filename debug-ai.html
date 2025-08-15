@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI デバッグ - リバーステトリス</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px; 
+            background: #111; 
+            color: #fff; 
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        pre {
+            background: #000;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #666;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover { background: #444; }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .warning { color: #facc15; }
+    </style>
+</head>
+<body>
+    <h1>🔧 AI エンジン デバッグツール</h1>
+    
+    <div class="test-section">
+        <h2>AI エンジンの動作確認</h2>
+        <button onclick="testAILoading()">AI 読み込み確認</button>
+        <button onclick="testAIPlacement()">AI 配置テスト</button>
+        <button onclick="testAllPieces()">全ピース配置テスト</button>
+        <pre id="ai-test-output"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>ゲームエンジン連携テスト</h2>
+        <button onclick="testGameEngineAI()">ゲームエンジンとAI連携</button>
+        <button onclick="simulateGamePlay()">ゲーム動作シミュレート</button>
+        <pre id="game-test-output"></pre>
+    </div>
+
+    <script src="game-engine.js"></script>
+    <script src="ai-engine.js"></script>
+    <script src="main.js"></script>
+    
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('ai-test-output');
+            const color = type === 'error' ? '#f87171' : 
+                         type === 'success' ? '#4ade80' : 
+                         type === 'warning' ? '#facc15' : '#fff';
+            output.innerHTML += `<span style="color: ${color}">${message}</span>\n`;
+            console.log(message);
+        }
+
+        function logGame(message, type = 'info') {
+            const output = document.getElementById('game-test-output');
+            const color = type === 'error' ? '#f87171' : 
+                         type === 'success' ? '#4ade80' : 
+                         type === 'warning' ? '#facc15' : '#fff';
+            output.innerHTML += `<span style="color: ${color}">${message}</span>\n`;
+            console.log(message);
+        }
+
+        function testAILoading() {
+            document.getElementById('ai-test-output').innerHTML = '';
+            log('=== AI エンジン読み込みテスト ===', 'info');
+            
+            try {
+                if (typeof window.aiEngine === 'undefined') {
+                    log('❌ AI エンジンが読み込まれていません', 'error');
+                    return;
+                }
+                
+                log('✅ AI エンジンオブジェクト存在確認', 'success');
+                log(`AI エンジンタイプ: ${typeof window.aiEngine}`, 'info');
+                log(`AI エンジンコンストラクター: ${window.aiEngine.constructor.name}`, 'info');
+                
+                // メソッド確認
+                const methods = ['findBestPlacement', 'rotateShape', 'evaluateGrid'];
+                methods.forEach(method => {
+                    if (typeof window.aiEngine[method] === 'function') {
+                        log(`✅ ${method} メソッド存在`, 'success');
+                    } else {
+                        log(`❌ ${method} メソッド不存在`, 'error');
+                    }
+                });
+                
+                // 難易度パラメータ確認
+                if (window.aiEngine.difficultyParams) {
+                    log('✅ 難易度パラメータ存在:', 'success');
+                    log(JSON.stringify(window.aiEngine.difficultyParams, null, 2), 'info');
+                } else {
+                    log('❌ 難易度パラメータ不存在', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ AI エンジン読み込みエラー: ${error.message}`, 'error');
+            }
+        }
+
+        function testAIPlacement() {
+            log('\n=== AI 配置テスト ===', 'info');
+            
+            try {
+                const testGrid = Array(20).fill().map(() => Array(10).fill(0));
+                const testShape = [[1,1,1,1]]; // I-piece
+                
+                log('テスト用グリッドとシェイプ作成完了', 'info');
+                log(`グリッドサイズ: ${testGrid.length} x ${testGrid[0].length}`, 'info');
+                log(`テストシェイプ: ${JSON.stringify(testShape)}`, 'info');
+                
+                const placement = window.aiEngine.findBestPlacement(testGrid, testShape, 'normal');
+                
+                if (placement) {
+                    log('✅ AI 配置計算成功:', 'success');
+                    log(`  座標: (${placement.x}, ${placement.y})`, 'success');
+                    log(`  回転: ${placement.rotation}`, 'success');
+                    log(`  シェイプ: ${JSON.stringify(placement.shape)}`, 'success');
+                } else {
+                    log('❌ AI 配置計算失敗: null が返されました', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ AI 配置テストエラー: ${error.message}`, 'error');
+                log(`スタックトレース: ${error.stack}`, 'error');
+            }
+        }
+
+        function testAllPieces() {
+            log('\n=== 全ピース配置テスト ===', 'info');
+            
+            try {
+                const pieces = {
+                    I: [[1,1,1,1]],
+                    O: [[1,1],[1,1]],
+                    T: [[0,1,0],[1,1,1]],
+                    S: [[0,1,1],[1,1,0]],
+                    Z: [[1,1,0],[0,1,1]],
+                    J: [[1,0,0],[1,1,1]],
+                    L: [[0,0,1],[1,1,1]]
+                };
+                
+                const testGrid = Array(20).fill().map(() => Array(10).fill(0));
+                
+                Object.entries(pieces).forEach(([type, shape]) => {
+                    try {
+                        const placement = window.aiEngine.findBestPlacement(testGrid, shape, 'normal');
+                        if (placement) {
+                            log(`✅ ${type}ピース: (${placement.x}, ${placement.y}) 回転${placement.rotation}`, 'success');
+                        } else {
+                            log(`❌ ${type}ピース: 配置計算失敗`, 'error');
+                        }
+                    } catch (error) {
+                        log(`❌ ${type}ピース: エラー - ${error.message}`, 'error');
+                    }
+                });
+                
+            } catch (error) {
+                log(`❌ 全ピーステストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        function testGameEngineAI() {
+            document.getElementById('game-test-output').innerHTML = '';
+            logGame('=== ゲームエンジンとAI連携テスト ===', 'info');
+            
+            try {
+                if (typeof GameEngine === 'undefined') {
+                    logGame('❌ GameEngine クラスが読み込まれていません', 'error');
+                    return;
+                }
+                
+                const gameEngine = new GameEngine();
+                logGame('✅ ゲームエンジン作成成功', 'success');
+                
+                // TETROMINOS定数の確認
+                if (typeof TETROMINOS !== 'undefined') {
+                    logGame('✅ TETROMINOS 定数存在確認', 'success');
+                    logGame(`定義されているピース: ${Object.keys(TETROMINOS).join(', ')}`, 'info');
+                } else {
+                    logGame('❌ TETROMINOS 定数が読み込まれていません', 'error');
+                }
+                
+                // AI エンジンとの連携テスト
+                if (window.aiEngine) {
+                    logGame('✅ AI エンジンアクセス可能', 'success');
+                    
+                    // 実際の配置テスト
+                    const testGrid = gameEngine.createEmptyGrid();
+                    const testShape = TETROMINOS['I'].shape;
+                    
+                    const placement = window.aiEngine.findBestPlacement(testGrid, testShape, 'normal');
+                    
+                    if (placement) {
+                        logGame('✅ ゲームエンジン経由でAI配置計算成功', 'success');
+                        logGame(`結果: (${placement.x}, ${placement.y})`, 'success');
+                    } else {
+                        logGame('❌ ゲームエンジン経由でAI配置計算失敗', 'error');
+                    }
+                } else {
+                    logGame('❌ AI エンジンにアクセスできません', 'error');
+                }
+                
+            } catch (error) {
+                logGame(`❌ ゲームエンジンテストエラー: ${error.message}`, 'error');
+                logGame(`スタックトレース: ${error.stack}`, 'error');
+            }
+        }
+
+        function simulateGamePlay() {
+            logGame('\n=== ゲーム動作シミュレート ===', 'info');
+            
+            try {
+                const gameEngine = new GameEngine();
+                gameEngine.start();
+                logGame('✅ ゲーム開始', 'success');
+                
+                // ピース選択をシミュレート
+                setTimeout(() => {
+                    logGame('I ピース送信テスト...', 'info');
+                    gameEngine.selectPiece('I');
+                    
+                    // 少し待ってから状態確認
+                    setTimeout(() => {
+                        logGame(`ゲーム状態: ${JSON.stringify(gameEngine.state)}`, 'info');
+                        logGame(`送ったミノ数: ${gameEngine.piecesSent}`, 'info');
+                        logGame(`スコア: ${gameEngine.score}`, 'info');
+                        
+                        if (gameEngine.piecesSent > 0) {
+                            logGame('✅ ピース処理成功', 'success');
+                        } else {
+                            logGame('❌ ピース処理失敗', 'error');
+                        }
+                    }, 2000);
+                }, 100);
+                
+            } catch (error) {
+                logGame(`❌ ゲーム動作シミュレートエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // ページロード後の自動テスト
+        window.addEventListener('load', () => {
+            console.log('🔧 AI デバッグツール読み込み完了');
+            setTimeout(testAILoading, 500);
+        });
+    </script>
+</body>
+</html>

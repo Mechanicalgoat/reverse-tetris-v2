@@ -206,9 +206,31 @@ class GameEngine {
      */
     getDefaultPlacement(type) {
         const shape = TETROMINOS[type].shape;
-        const x = Math.floor((GRID_WIDTH - shape[0].length) / 2);
-        const y = this.findDropPosition(shape, x);
-        return { x, y, rotation: 0, shape };
+        
+        // 少しランダム性を加えた配置
+        const possibleX = [];
+        for (let x = 0; x <= GRID_WIDTH - shape[0].length; x++) {
+            const y = this.findDropPosition(shape, x);
+            if (y >= 0) {
+                possibleX.push({ x, y });
+            }
+        }
+        
+        if (possibleX.length === 0) {
+            console.log('No valid placement found for default placement');
+            return null;
+        }
+        
+        // ランダムに選択（リバーステトリスらしい配置）
+        const selected = possibleX[Math.floor(Math.random() * possibleX.length)];
+        console.log('Default placement selected:', selected);
+        
+        return { 
+            x: selected.x, 
+            y: selected.y, 
+            rotation: 0, 
+            shape 
+        };
     }
     
     /**
