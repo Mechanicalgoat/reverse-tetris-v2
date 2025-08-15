@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Tetris v2 - 完全版</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Reverse Tetris</h1>
+            <p class="subtitle">AIを積み上げろ！</p>
+        </header>
+
+        <div class="game-layout">
+            <!-- 左パネル: スコアと統計 -->
+            <aside class="left-panel">
+                <div class="score-board">
+                    <h2>スコア</h2>
+                    <div class="score" id="score">0</div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">送ったミノ:</span>
+                        <span class="stat-value" id="pieces-sent">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">消去ライン:</span>
+                        <span class="stat-value" id="lines-cleared">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">最大高さ:</span>
+                        <span class="stat-value" id="max-height">0</span>
+                    </div>
+                </div>
+
+                <div class="difficulty-selector">
+                    <h3>難易度</h3>
+                    <select id="difficulty">
+                        <option value="easy">かんたん</option>
+                        <option value="normal" selected>ふつう</option>
+                        <option value="hard">むずかしい</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- 中央: ゲームボード -->
+            <main class="center-panel">
+                <canvas id="game-board" width="300" height="600"></canvas>
+                <div id="game-message" class="game-message hidden"></div>
+            </main>
+
+            <!-- 右パネル: ミノ選択 -->
+            <aside class="right-panel">
+                <div class="piece-selector-container">
+                    <h3>ミノを選択</h3>
+                    <div class="piece-selector" id="piece-selector"></div>
+                </div>
+
+                <div class="next-piece-display">
+                    <h3>次のミノ</h3>
+                    <canvas id="next-piece" width="120" height="80"></canvas>
+                </div>
+
+                <div class="controls">
+                    <button id="start-btn" class="btn btn-primary">ゲーム開始</button>
+                    <button id="pause-btn" class="btn btn-secondary" disabled>一時停止</button>
+                    <button id="reset-btn" class="btn btn-danger">リセット</button>
+                </div>
+
+                <div class="queue-indicator" id="queue-indicator">
+                    キュー: <span id="queue-count">0</span>
+                </div>
+            </aside>
+        </div>
+
+        <footer>
+            <div class="instructions">
+                <h3>遊び方</h3>
+                <ul>
+                    <li>右のパネルからミノを選んでAIに送信</li>
+                    <li>AIは最適な位置に配置しようとします</li>
+                    <li>画面上部3行に到達したら勝利！</li>
+                    <li>完成したラインは自動で消去されます</li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+
+    <script src="game-engine.js"></script>
+    <script src="ai-engine.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
