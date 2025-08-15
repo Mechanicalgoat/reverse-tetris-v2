@@ -42,7 +42,7 @@ class GameEngine {
         
         // ゲームデータ
         this.grid = this.createEmptyGrid();
-        this.score = 0;
+        this.score = 400; // 初期スコア
         this.piecesSent = 0;
         this.linesCleared = 0;
         this.currentPiece = null;
@@ -65,6 +65,7 @@ class GameEngine {
     init() {
         this.setupCanvas();
         this.draw();
+        console.log('GameEngine initialized');
     }
     
     /**
@@ -124,7 +125,7 @@ class GameEngine {
         };
         
         this.grid = this.createEmptyGrid();
-        this.score = 0;
+        this.score = 400;
         this.piecesSent = 0;
         this.linesCleared = 0;
         this.currentPiece = null;
@@ -144,11 +145,14 @@ class GameEngine {
     selectPiece(type) {
         if (!this.state.isPlaying || this.state.isPaused || this.state.isGameClear) return;
         
+        console.log('Piece selected:', type);
+        
         // キューに追加
         if (this.state.isProcessing || this.currentPiece) {
             if (this.pieceQueue.length < this.maxQueueSize) {
                 this.pieceQueue.push(type);
                 this.updateQueueDisplay();
+                console.log('Added to queue:', type, 'Queue length:', this.pieceQueue.length);
             }
             return;
         }
@@ -163,6 +167,8 @@ class GameEngine {
         this.state.isProcessing = true;
         this.selectedPiece = type;
         
+        console.log('Processing piece:', type);
+        
         // 次のピース表示
         this.displayNextPiece(type);
         
@@ -172,10 +178,13 @@ class GameEngine {
             this.getDefaultPlacement(type);
         
         if (!placement) {
+            console.log('No valid placement found');
             this.state.isProcessing = false;
             this.processQueue();
             return;
         }
+        
+        console.log('Placement found:', placement);
         
         // ピースをアニメーション付きで配置
         await this.animatePieceDrop(type, placement);
@@ -184,10 +193,12 @@ class GameEngine {
         this.piecesSent++;
         this.updateScore();
         
+        console.log('Piece placed. Checking lines...');
+        
         // ライン消去チェック（遅延を入れて確実に処理）
         setTimeout(() => {
             this.checkAndClearLines();
-        }, 50);
+        }, 100);
     }
     
     /**
@@ -287,7 +298,7 @@ class GameEngine {
             }
         }
         
-        console.log('Piece placed at', piece.x, piece.y);
+        console.log('Piece placed on grid at', piece.x, piece.y);
     }
     
     /**
@@ -310,8 +321,9 @@ class GameEngine {
             }
         }
         
+        console.log('Line check completed. Found:', completedLines);
+        
         if (completedLines.length > 0) {
-            console.log('Completed lines found:', completedLines);
             this.clearLines(completedLines);
         } else {
             this.checkGameState();
@@ -322,6 +334,8 @@ class GameEngine {
      * ライン消去処理
      */
     clearLines(lines) {
+        console.log('Clearing lines:', lines);
+        
         // ハイライト表示
         this.highlightedLines = lines;
         this.draw();
@@ -329,15 +343,16 @@ class GameEngine {
         // 一定時間後に消去
         setTimeout(() => {
             // 下から順に削除（インデックスのずれを防ぐ）
-            lines.sort((a, b) => b - a);
+            const sortedLines = lines.sort((a, b) => b - a);
             
-            for (const line of lines) {
+            for (const line of sortedLines) {
+                console.log('Removing line:', line);
                 this.grid.splice(line, 1);
                 this.grid.unshift(Array(GRID_WIDTH).fill(0));
             }
             
             this.linesCleared += lines.length;
-            this.score += lines.length * 10;
+            this.score += lines.length * 50; // ライン消去ボーナス
             this.highlightedLines = [];
             
             console.log('Lines cleared:', lines.length, 'Total:', this.linesCleared);
@@ -348,7 +363,7 @@ class GameEngine {
             // ゲーム状態チェック
             setTimeout(() => {
                 this.checkGameState();
-            }, 50);
+            }, 100);
             
         }, HIGHLIGHT_DURATION);
     }
@@ -357,6 +372,8 @@ class GameEngine {
      * ゲーム状態チェック
      */
     checkGameState() {
+        console.log('Checking game state...');
+        
         // ゲームクリア判定（上部3行にブロックがある）
         let hasBlocksInTop = false;
         
@@ -364,6 +381,7 @@ class GameEngine {
             for (let x = 0; x < GRID_WIDTH; x++) {
                 if (this.grid[y][x] !== 0) {
                     hasBlocksInTop = true;
+                    console.log('Block found in top rows at:', x, y);
                     break;
                 }
             }
@@ -374,6 +392,7 @@ class GameEngine {
             console.log('Game Clear! Blocks reached top 3 rows');
             this.handleGameClear();
         } else {
+            console.log('Game continues...');
             // 次の処理
             this.state.isProcessing = false;
             this.processQueue();
@@ -395,18 +414,23 @@ class GameEngine {
         };
         this.score += difficultyBonus[this.difficulty] || 100;
         
+        console.log('Game cleared with score:', this.score);
+        
         this.updateUI();
-        this.showGameMessage('🎉 ゲームクリア！', `スコア: ${this.score}`);
+        this.showGameMessage('🎉 ゲームクリア！', `最終スコア: ${this.score}`);
     }
     
     /**
      * キュー処理
      */
     processQueue() {
-        if (this.pieceQueue.length > 0 && !this.state.isProcessing) {
+        if (this.pieceQueue.length > 0 && !this.state.isProcessing && !this.state.isGameClear) {
             const nextPiece = this.pieceQueue.shift();
             this.updateQueueDisplay();
-            this.processPiece(nextPiece);
+            console.log('Processing from queue:', nextPiece);
+            setTimeout(() => {
+                this.processPiece(nextPiece);
+            }, 200);
         }
     }
     
@@ -448,8 +472,8 @@ class GameEngine {
         
         // ハイライトされたライン
         if (this.highlightedLines.length > 0) {
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             for (const line of this.highlightedLines) {
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
                 this.ctx.fillRect(0, line * CELL_SIZE, this.canvas.width, CELL_SIZE);
             }
         }
@@ -527,8 +551,8 @@ class GameEngine {
      * スコア更新
      */
     updateScore() {
-        const heightPenalty = this.getMaxHeight() * 2;
-        this.score = Math.max(0, 400 - this.piecesSent * 10 + this.linesCleared * 10 - heightPenalty);
+        // 基本的にピース送信でスコア減少、ライン消去でボーナス、高さでスコア加算
+        this.score = Math.max(0, 400 - this.piecesSent * 10 + this.linesCleared * 10 + this.getMaxHeight() * 2);
     }
     
     /**
@@ -574,11 +598,14 @@ class GameEngine {
      */
     showGameMessage(title, message) {
         const messageEl = document.getElementById('game-message');
+        if (!messageEl) return;
+        
         messageEl.innerHTML = `
             <h2>${title}</h2>
             <p>${message}</p>
             <p>送ったミノ: ${this.piecesSent}</p>
             <p>消去ライン: ${this.linesCleared}</p>
+            <p>難易度: ${this.difficulty}</p>
         `;
         messageEl.classList.remove('hidden');
     }

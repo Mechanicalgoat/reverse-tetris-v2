@@ -3,6 +3,10 @@
  * 高性能AI思考エンジン
  */
 
+// ゲーム定数（game-engine.jsと共有）
+const GRID_WIDTH = 10;
+const GRID_HEIGHT = 20;
+
 class AIEngine {
     constructor() {
         this.difficultyParams = {
