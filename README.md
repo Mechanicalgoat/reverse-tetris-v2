@@ -1,8 +1,9 @@
 # 🎮 Reverse Tetris v2 - 完全版
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-2.0.0-green.svg)](https://github.com/yourusername/reverse-tetris-v2)
-[![Status](https://img.shields.io/badge/Status-Complete-brightgreen.svg)](https://github.com/yourusername/reverse-tetris-v2)
+[![Version](https://img.shields.io/badge/Version-2.0.0-green.svg)](https://github.com/Mechanicalgoat/reverse-tetris-v2)
+[![Status](https://img.shields.io/badge/Status-Complete-brightgreen.svg)](https://github.com/Mechanicalgoat/reverse-tetris-v2)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Available-brightgreen.svg)](https://mechanicalgoat.github.io/reverse-tetris-v2/)
 
 ## 🌟 概要
 
@@ -54,12 +55,16 @@
 - **モバイル**: iOS 12+, Android 8+
 - **解像度**: 320px+ (レスポンシブ対応)
 
+## 🎮 今すぐプレイ！
+
+**👉 [Live Demo - https://mechanicalgoat.github.io/reverse-tetris-v2/](https://mechanicalgoat.github.io/reverse-tetris-v2/)**
+
 ## 🚀 クイックスタート
 
 ### 1. ローカル実行
 ```bash
 # リポジトリをクローン
-git clone https://github.com/yourusername/reverse-tetris-v2.git
+git clone https://github.com/Mechanicalgoat/reverse-tetris-v2.git
 
 # ディレクトリに移動
 cd reverse-tetris-v2
